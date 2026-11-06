@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpsNexus Visual Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one long scroll of numbered sections, each a diagram with a short caption; sticky section nav on top. */
+:root{
+  --bg:#f4f6f4; --surface:#ffffff; --ink:#15232a; --ink-2:#51606a; --line:#d5ddd8;
+  --accent:#0d6b51; --accent-soft:#e1f0e9;
+  --warn:#a8670f; --warn-soft:#fbf0dc; --crit:#b42318; --crit-soft:#fbe6e3; --ok:#2c7a3a; --ok-soft:#e3f2e5;
+  --lane:#eef2ef;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1518; --surface:#162025; --ink:#e6ecea; --ink-2:#9db0ad; --line:#2b3a3f;
+    --accent:#45c39a; --accent-soft:#153a2f;
+    --warn:#e3a84f; --warn-soft:#3a2c14; --crit:#f27b6b; --crit-soft:#3d1c19; --ok:#6fcf7f; --ok-soft:#173523;
+    --lane:#121b1f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1518; --surface:#162025; --ink:#e6ecea; --ink-2:#9db0ad; --line:#2b3a3f;
+  --accent:#45c39a; --accent-soft:#153a2f;
+  --warn:#e3a84f; --warn-soft:#3a2c14; --crit:#f27b6b; --crit-soft:#3d1c19; --ok:#6fcf7f; --ok-soft:#173523;
+  --lane:#121b1f; color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+header.top{padding:40px 0 24px;border-bottom:1px solid var(--line)}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--display);font-size:clamp(30px,4.4vw,46px);line-height:1.08;margin:8px 0 12px;text-wrap:balance}
+.lede{max-width:66ch;color:var(--ink-2);margin:0}
+nav.toc{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+nav.toc ul{list-style:none;margin:0;padding:10px 0;display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin}
+nav.toc a{display:block;white-space:nowrap;text-decoration:none;color:var(--ink-2);font-size:13px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+nav.toc a:hover{color:var(--ink);border-color:var(--accent)}
+section{padding:44px 0 8px;scroll-margin-top:56px}
+h2{font-family:var(--display);font-size:26px;line-height:1.15;margin:0 0 6px;text-wrap:balance;display:flex;gap:12px;align-items:baseline}
+h2 .no{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:500}
+.sub{color:var(--ink-2);max-width:68ch;margin:0 0 20px}
+h3{font-family:var(--display);font-size:18px;margin:26px 0 10px}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+figcaption{font-size:14px;color:var(--ink-2);margin-top:12px;max-width:80ch}
+.scroll{overflow-x:auto}
+svg{display:block;max-width:100%;height:auto}
+.scroll svg{max-width:none}
+
+/* SVG primitives */
+.n{fill:var(--surface);stroke:var(--line);stroke-width:1.4}
+.n-acc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+.n-crit{fill:var(--crit-soft);stroke:var(--crit);stroke-width:1.4}
+.n-ok{fill:var(--ok-soft);stroke:var(--ok);stroke-width:1.4}
+.n-warn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.4}
+.n-dash{fill:var(--surface);stroke:var(--ink-2);stroke-width:1.2;stroke-dasharray:5 4}
+.t{fill:var(--ink);font-family:var(--body);font-size:12.5px;font-weight:600}
+.ts{fill:var(--ink-2);font-family:var(--body);font-size:11px}
+.tm{fill:var(--ink-2);font-family:var(--mono);font-size:11px}
+.tl{fill:var(--ink);font-family:var(--body);font-size:12px;font-weight:500}
+.e{stroke:var(--ink-2);stroke-width:1.4;fill:none}
+.e-dash{stroke:var(--ink-2);stroke-width:1.3;fill:none;stroke-dasharray:5 4}
+.e-crit{stroke:var(--crit);stroke-width:1.5;fill:none}
+.ah{fill:var(--ink-2)}
+.ah-crit{fill:var(--crit)}
+.lane{fill:var(--lane)}
+.lane-alt{fill:var(--surface)}
+.grid{stroke:var(--line);stroke-width:1}
+
+/* Loop cards */
+.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;counter-reset:s}
+.loop .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;position:relative}
+.loop .card b{display:block;font-family:var(--display);font-size:18px;margin:4px 0 6px}
+.loop .card p{margin:0;font-size:14px;color:var(--ink-2)}
+.loop .card .step{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.loop .card:not(:last-child)::after{content:"→";position:absolute;right:-12px;top:50%;transform:translate(50%,-50%);color:var(--ink-2);font-size:16px;z-index:1}
+.loopnote{font-size:14px;color:var(--ink-2);margin-top:10px}
+
+/* Chain */
+.chain{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:10px 28px}
+.chain li{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:118px;flex:1 1 118px;max-width:200px}
+.chain li:not(:last-child)::after{content:"→";position:absolute;right:-20px;top:50%;transform:translateY(-50%);color:var(--ink-2)}
+.chain .lvl{font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+.chain .nm{display:block;font-weight:600;font-size:14px}
+.chain .ex{display:block;font-size:12.5px;color:var(--ink-2);margin-top:2px}
+.chain li.hl{border-color:var(--accent);background:var(--accent-soft)}
+
+/* Modules stack */
+.stack{display:grid;gap:8px}
+.layer{display:grid;grid-template-columns:170px 1fr;gap:12px;align-items:stretch}
+.layer .lab{font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:10px 0;display:flex;flex-direction:column;justify-content:center}
+.layer .lab b{font-family:var(--body);font-size:14px;color:var(--ink)}
+.layer .mods{display:flex;flex-wrap:wrap;gap:8px}
+.mod{flex:1 1 140px;border-radius:8px;padding:10px 12px;border:1px solid var(--line);background:var(--surface);font-size:14px}
+.mod small{display:block;color:var(--ink-2);font-size:12px}
+.p1{border-left:4px solid var(--accent)}
+.p2{border-left:4px solid var(--warn)}
+.p3{border-left:4px solid var(--ink-2)}
+.mod.core{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--ink-2);margin-top:14px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.legend .l1::before{background:var(--accent)}
+.legend .l2::before{background:var(--warn)}
+.legend .l3::before{background:var(--ink-2)}
+
+/* Roles ladder */
+.ladder{display:grid;grid-template-columns:1fr 260px;gap:16px}
+.rungs{display:grid;gap:8px}
+.rung{display:grid;grid-template-columns:28px 210px 150px 1fr;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+.rung .lv{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.rung .rn{font-weight:600}
+.scope{font-family:var(--mono);font-size:11.5px;padding:3px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);justify-self:start;white-space:nowrap}
+.rung .does{font-size:14px;color:var(--ink-2)}
+.side{background:var(--surface);border:1px dashed var(--ink-2);border-radius:8px;padding:14px;align-self:start}
+.side .rn{font-weight:600;display:block;margin:6px 0 4px}
+.side p{font-size:14px;color:var(--ink-2);margin:0}
+.reports{font-size:13px;color:var(--ink-2);margin-top:10px}
+
+/* Matrix */
+table.mx{border-collapse:collapse;width:100%;min-width:820px;font-size:14px}
+.mx th,.mx td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:center}
+.mx th{font-size:12px;font-family:var(--mono);color:var(--ink-2);font-weight:500;vertical-align:bottom}
+.mx td:first-child,.mx th:first-child{text-align:left;padding-left:2px}
+.mx .y{color:var(--accent);font-size:16px}
+.mx .r{color:var(--ink-2);font-size:16px}
+.mx tbody tr:hover{background:var(--lane)}
+
+/* Escalation */
+.esc{display:grid;gap:8px}
+.erow{display:grid;grid-template-columns:110px 150px 1fr;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.pill{font-family:var(--mono);font-size:12px;padding:3px 10px;border-radius:999px;justify-self:start;font-weight:500}
+.pill.c{background:var(--crit-soft);color:var(--crit)}
+.pill.h{background:var(--warn-soft);color:var(--warn)}
+.pill.m{background:var(--accent-soft);color:var(--accent)}
+.pill.l{background:var(--lane);color:var(--ink-2);border:1px solid var(--line)}
+.erow .when{font-weight:600;font-variant-numeric:tabular-nums}
+.erow .who{font-size:14px;color:var(--ink-2)}
+.track{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.track span{font-size:13px;padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.track i{font-style:normal;color:var(--ink-2);font-size:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+ul.ticks{margin:0;padding-left:18px;font-size:14px}
+ul.ticks li{margin:3px 0}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.box h4{margin:0 0 8px;font-size:15px}
+
+/* Score */
+.bar{display:flex;height:44px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.bar div{display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden}
+table.calc{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums;margin-top:16px}
+.calc th,.calc td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
+.calc th:first-child,.calc td:first-child{text-align:left}
+.calc th{font-family:var(--mono);font-size:12px;color:var(--ink-2);font-weight:500}
+.calc tfoot td{font-weight:700;border-bottom:none;font-size:15px}
+
+/* Phases */
+.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.phase{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;border-top:4px solid var(--accent)}
+.phase.ph2{border-top-color:var(--warn)}
+.phase.ph3{border-top-color:var(--ink-2)}
+.phase h4{font-family:var(--display);font-size:18px;margin:2px 0 4px}
+.phase .tag{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.phase ul{margin:10px 0 0;padding-left:18px;font-size:14px}
+
+/* Architecture */
+.arch{display:grid;grid-template-columns:1fr 220px;gap:12px}
+.tiers{display:grid;gap:6px}
+.tier{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:stretch}
+.tier .tn{font-family:var(--mono);font-size:12px;color:var(--ink-2);display:flex;align-items:center}
+.tier .tb{display:flex;flex-wrap:wrap;gap:6px}
+.tier .tb span{flex:1 1 120px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:13.5px;text-align:center}
+.tier.core .tb span{background:var(--accent-soft);border-color:var(--accent)}
+.tier .tb span.opt{border-style:dashed;color:var(--ink-2)}
+.down{text-align:center;color:var(--ink-2);font-size:12px;font-family:var(--mono);margin:-2px 0 -2px 130px}
+.integr{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}
+.integr b{font-size:14px}
+.integr ul{margin:6px 0 0;padding-left:16px;font-size:13.5px;color:var(--ink-2)}
+
+/* Questions */
+.qs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:14.5px}
+.q small{display:block;font-family:var(--mono);font-size:11px;color:var(--accent);margin-bottom:4px}
+.q.future{border-style:dashed}
+footer{padding:40px 0 60px;color:var(--ink-2);font-size:13px}
+
+@media (max-width:860px){
+  .loop{grid-template-columns:1fr 1fr}
+  .loop .card:nth-child(2)::after{display:none}
+  .ladder,.arch,.two{grid-template-columns:1fr}
+  .rung{grid-template-columns:24px 1fr;row-gap:4px}
+  .rung .scope,.rung .does{grid-column:2}
+  .phases,.qs{grid-template-columns:1fr}
+  .layer{grid-template-columns:1fr}
+  .erow{grid-template-columns:1fr}
+  .tier{grid-template-columns:1fr}
+  .down{margin-left:0}
+}
+@media (max-width:480px){
+  .loop{grid-template-columns:1fr}
+  .loop .card::after{display:none}
+}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+html{scroll-behavior:smooth}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="kicker">OpsNexus · BRD v1.0 explained visually</div>
+    <h1>How OpsNexus works: roles, daily work and the compliance loop</h1>
+    <p class="lede">A visual walk-through of the Business &amp; Functional Requirements Document for the Saudi hospitality operations and compliance platform. Every diagram is drawn from the requirements; the branch names, readings and times are illustrative examples.</p>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <div class="wrap">
+    <ul>
+      <li><a href="#loop">The core loop</a></li>
+      <li><a href="#modules">Modules</a></li>
+      <li><a href="#hierarchy">Organisation</a></li>
+      <li><a href="#roles">Roles</a></li>
+      <li><a href="#permissions">Permissions</a></li>
+      <li><a href="#day">A day in a branch</a></li>
+      <li><a href="#capa">Failed item flow</a></li>
+      <li><a href="#tasks">Task statuses</a></li>
+      <li><a href="#escalation">Escalation</a></li>
+      <li><a href="#library">Compliance library</a></li>
+      <li><a href="#score">Scoring</a></li>
+      <li><a href="#expiry">Certificates</a></li>
+      <li><a href="#offline">Offline sync</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#phases">Roadmap</a></li>
+      <li><a href="#vision">End goal</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- 1 LOOP -->
+<section id="loop">
+  <h2><span class="no">01</span>The core loop in one picture</h2>
+  <p class="sub">Everything in the platform serves one cycle. Headquarters defines the standard, branches execute it with proof, failures turn into tracked fixes, and management sees the result.</p>
+  <div class="loop">
+    <div class="card"><span class="step">STEP 1 · HQ</span><b>Configure</b><p>Admins build checklists, link them to SFDA, Balady or brand rules, and set schedules, evidence rules, scoring and SLAs. No developer needed.</p></div>
+    <div class="card"><span class="step">STEP 2 · BRANCH</span><b>Execute</b><p>Staff complete checklists on mobile, inside the branch geofence, with photos, readings, timestamps and a signature.</p></div>
+    <div class="card"><span class="step">STEP 3 · SYSTEM</span><b>Detect &amp; fix</b><p>A failed item forces evidence, opens a corrective action with an owner and SLA, and escalates until it is verified and closed.</p></div>
+    <div class="card"><span class="step">STEP 4 · MANAGEMENT</span><b>See &amp; improve</b><p>Scores roll up from department to group. Repeat failures show up, and later the AI layer predicts risk.</p></div>
+  </div>
+  <p class="loopnote">What comes out of step 4 (a new SOP, a changed threshold, a new checklist item) feeds back into step 1.</p>
+</section>
+
+<!-- 2 MODULES -->
+<section id="modules">
+  <h2><span class="no">02</span>Modules: one engine, add-ons on top</h2>
+  <p class="sub">The BRD's main instruction to developers: do not build fixed screens per checklist. The checklist engine and compliance library are the foundation. Every other module plugs into them and can be sold separately.</p>
+  <figure>
+    <div class="stack" role="img" aria-label="Layered module stack: shared platform services at the base, checklist engine and compliance library as foundation, Phase 1 operational modules, Phase 2 add-ons, and Phase 3 intelligence on top.">
+      <div class="layer"><div class="lab"><b>Intelligence</b>add-on</div>
+        <div class="mods">
+          <div class="mod p3">AI risk scoring<small>predicts non-compliance</small></div>
+          <div class="mod p3">Root-cause &amp; repeat failures<small>patterns across data</small></div>
+          <div class="mod p3">AI management assistant<small>ask questions in plain words</small></div>
+          <div class="mod p3">Photo intelligence · IoT<small>sensors, image checks</small></div>
+        </div></div>
+      <div class="layer"><div class="lab"><b>Add-on modules</b>sold separately</div>
+        <div class="mods">
+          <div class="mod p2">Training &amp; assessments<small>courses, quizzes, certificates</small></div>
+          <div class="mod p2">Attendance &amp; rosters<small>GPS clock-in, shifts</small></div>
+          <div class="mod p2">Maintenance<small>assets, QR codes, PM</small></div>
+          <div class="mod p2">Customer<small>complaints, recovery</small></div>
+          <div class="mod p2">Vendors<small>contractors, documents</small></div>
+        </div></div>
+      <div class="layer"><div class="lab"><b>Operations &amp; compliance</b>starter package</div>
+        <div class="mods">
+          <div class="mod p1">Operations<small>opening, mid-shift, closing</small></div>
+          <div class="mod p1">Food safety &amp; hygiene<small>receiving, storage, temps</small></div>
+          <div class="mod p1">Tasks &amp; issues<small>incidents, SLAs</small></div>
+          <div class="mod p1">Corrective action (CAPA)<small>root cause to closure</small></div>
+          <div class="mod p1">Licences &amp; certificates<small>expiry alerts</small></div>
+          <div class="mod p1">Dashboards &amp; reports<small>branch and group</small></div>
+        </div></div>
+      <div class="layer"><div class="lab"><b>Foundation</b>the heart</div>
+        <div class="mods">
+          <div class="mod core">Digital checklist engine<small>templates, 17 question types, schedules, evidence rules</small></div>
+          <div class="mod core">Saudi compliance library<small>versioned, separate from code</small></div>
+          <div class="mod core">Workflow &amp; escalation engine<small>configurable SLAs</small></div>
+          <div class="mod core">Scoring engine<small>weighted, configurable</small></div>
+        </div></div>
+      <div class="layer"><div class="lab"><b>Platform services</b>shared by all</div>
+        <div class="mods">
+          <div class="mod p1">Users, roles, branches</div>
+          <div class="mod p1">Arabic / English · RTL</div>
+          <div class="mod p1">Notifications</div>
+          <div class="mod p1">Audit trail &amp; evidence integrity</div>
+          <div class="mod p1">GPS · geofence · photos</div>
+          <div class="mod p2">Offline sync</div>
+        </div></div>
+    </div>
+    <div class="legend"><span class="l1">Phase 1 (MVP)</span><span class="l2">Phase 2</span><span class="l3">Phase 3</span></div>
+    <figcaption>Colours show the release phase in sections 71–73. Offline sync is required for UAT (section 75) but is not on the Phase 1 list, so it is marked Phase 2 here. That gap needs a decision.</figcaption>
+  </figure>
+</section>
+
+<!-- 3 HIERARCHY -->
+<section id="hierarchy">
+  <h2><span class="no">03</span>How a hospitality group is organised in the system</h2>
+  <p class="sub">Each checklist, score and permission sits somewhere in an eight-level tree. Dashboards drill down the same path, and a role's scope is a cut through it.</p>
+  <figure>
+    <ol class="chain" aria-label="Organisation hierarchy from Group to Checklist">
+      <li><span class="lvl">Group</span><span class="nm">Hospitality group</span><span class="ex">e.g. Al-Waha Group</span></li>
+      <li><span class="lvl">Brand</span><span class="nm">Brand</span><span class="ex">Waha Grill · Waha Suites</span></li>
+      <li><span class="lvl">Region</span><span class="nm">Region</span><span class="ex">Central · Western</span></li>
+      <li><span class="lvl">City</span><span class="nm">City</span><span class="ex">Riyadh · Jeddah</span></li>
+      <li class="hl"><span class="lvl">Branch</span><span class="nm">Branch / Property</span><span class="ex">Riyadh 01</span></li>
+      <li><span class="lvl">Department</span><span class="nm">Department</span><span class="ex">Kitchen · Housekeeping</span></li>
+      <li><span class="lvl">Area</span><span class="nm">Area</span><span class="ex">Cold room · Floor 3</span></li>
+      <li><span class="lvl">Checklist</span><span class="nm">Checklist</span><span class="ex">Kitchen temps 08:00</span></li>
+    </ol>
+    <figcaption>The branch is where the work happens and where geofencing applies. The management drill-down in section 57 uses the same path in reverse: Group → Region → City → Branch → Department → Checklist → Finding.</figcaption>
+  </figure>
+</section>
+
+<!-- 4 ROLES -->
+<section id="roles">
+  <h2><span class="no">04</span>The eight roles and who reports to whom</h2>
+  <p class="sub">Each role's scope widens as you move up. Work is done at the bottom and checked one level up, and visibility collects at the top. The Auditor sits outside the chain with read-only access.</p>
+  <figure>
+    <div class="ladder">
+      <div class="rungs">
+        <div class="rung"><span class="lv">L7</span><span class="rn">Corporate Administrator</span><span class="scope">Whole group</span><span class="does">Configures brands, branches, users, checklists, compliance rules, workflows and escalation rules.</span></div>
+        <div class="rung"><span class="lv">L6</span><span class="rn">Corporate Operations Mgr</span><span class="scope">All branches</span><span class="does">Compares branch performance, reviews escalations, assigns tasks, generates reports.</span></div>
+        <div class="rung"><span class="lv">L5</span><span class="rn">Quality / Food Safety Mgr</span><span class="scope">All branches</span><span class="does">Builds food-safety checklists, reviews failed inspections and evidence, approves CAPA, watches trends.</span></div>
+        <div class="rung"><span class="lv">L4</span><span class="rn">Area Manager</span><span class="scope">Assigned branches</span><span class="does">Inspects branches, compares them, assigns corrective actions, approves closures.</span></div>
+        <div class="rung"><span class="lv">L3</span><span class="rn">Branch Manager</span><span class="scope">One branch</span><span class="does">Assigns daily tasks, monitors completion, reviews failed items, approves corrective actions.</span></div>
+        <div class="rung"><span class="lv">L2</span><span class="rn">Supervisor</span><span class="scope">Shift / department</span><span class="does">Runs inspections, completes checklists, assigns tasks, verifies corrective actions.</span></div>
+        <div class="rung"><span class="lv">L1</span><span class="rn">Employee / Frontline</span><span class="scope">Own tasks</span><span class="does">Completes checklists, records readings, takes photos, reports issues, does training.</span></div>
+      </div>
+      <div class="side">
+        <span class="scope">Read-only · audit</span>
+        <span class="rn">Auditor</span>
+        <p>Reviews historical checklists, evidence and corrective actions, views audit reports and exports audit records. Can see the record but cannot change it.</p>
+      </div>
+    </div>
+    <p class="reports">Upward flow from section 68: Employee <b>completes</b> → Supervisor <b>reviews</b> → Branch Manager <b>monitors</b> → Area Manager <b>compares branches</b> → Corporate Quality <b>reviews compliance</b> → Executives <b>view the intelligence dashboard</b>.</p>
+  </figure>
+</section>
+
+<!-- 5 PERMISSIONS -->
+<section id="permissions">
+  <h2><span class="no">05</span>Who can do what</h2>
+  <p class="sub">The role-based access matrix as listed in section 6. A filled dot means a primary duty and a hollow dot means read-only access.</p>
+  <figure>
+    <div class="scroll">
+      <table class="mx">
+        <thead><tr>
+          <th>Capability</th><th>Corp.<br>Admin</th><th>Corp.<br>Ops</th><th>Quality<br>Mgr</th><th>Area<br>Mgr</th><th>Branch<br>Mgr</th><th>Super-<br>visor</th><th>Employee</th><th>Auditor</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Configure brands, branches, users, workflows, escalation</td><td class="y">●</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>Create checklists and compliance requirements</td><td class="y">●</td><td></td><td class="y">●</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>View dashboards</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td></td><td></td><td class="r">○</td></tr>
+          <tr><td>Conduct inspections</td><td></td><td></td><td></td><td class="y">●</td><td></td><td class="y">●</td><td></td><td></td></tr>
+          <tr><td>Complete checklists, record readings, upload photos</td><td></td><td></td><td></td><td></td><td></td><td class="y">●</td><td class="y">●</td><td></td></tr>
+          <tr><td>Report issues and incidents</td><td></td><td></td><td></td><td></td><td></td><td class="y">●</td><td class="y">●</td><td></td></tr>
+          <tr><td>Assign tasks or corrective actions</td><td></td><td class="y">●</td><td></td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td></td><td></td></tr>
+          <tr><td>Verify a corrective action was done</td><td></td><td></td><td></td><td></td><td></td><td class="y">●</td><td></td><td></td></tr>
+          <tr><td>Approve corrective actions / closures</td><td></td><td></td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td></td><td></td><td></td></tr>
+          <tr><td>Compare branch performance</td><td></td><td class="y">●</td><td></td><td class="y">●</td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>Review escalations</td><td></td><td class="y">●</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>Review history, evidence and failed inspections</td><td></td><td></td><td class="y">●</td><td></td><td class="y">●</td><td></td><td></td><td class="r">○</td></tr>
+          <tr><td>Generate or export reports and audit records</td><td></td><td class="y">●</td><td></td><td></td><td></td><td></td><td></td><td class="y">●</td></tr>
+          <tr><td>Complete training and assessments</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="y">●</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figcaption>The Corporate Administrator has full system access; the row shows only its distinct duties. Gaps to settle with the client: who can edit a template once it is in use, whether Supervisors can see other shifts, and whether Auditors are internal or external with time-limited access.</figcaption>
+  </figure>
+</section>
+
+<!-- 6 DAY -->
+<section id="day">
+  <h2><span class="no">06</span>A day at Riyadh 01, lane by lane</h2>
+  <p class="sub">A swimlane view of one ordinary day with one failure. It shows which role touches the work at each moment, and how the system steps in automatically.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1030 480" width="1030" role="img" aria-label="Swimlane: employee completes opening checklist, supervisor reviews, chiller fails at noon, system creates CAPA and alerts branch manager, supervisor fixes, quality manager verifies and closes, evening dashboards update.">
+      <defs>
+        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+      </defs>
+      <!-- lanes -->
+      <rect x="0" y="40" width="1030" height="62" class="lane"/>
+      <rect x="0" y="102" width="1030" height="62" class="lane-alt"/>
+      <rect x="0" y="164" width="1030" height="62" class="lane"/>
+      <rect x="0" y="226" width="1030" height="62" class="lane-alt"/>
+      <rect x="0" y="288" width="1030" height="62" class="lane"/>
+      <rect x="0" y="350" width="1030" height="62" class="lane-alt"/>
+      <rect x="0" y="412" width="1030" height="62" class="lane"/>
+      <line x1="150" y1="40" x2="150" y2="474" class="grid"/>
+      <text x="12" y="75" class="tl">System (automatic)</text>
+      <text x="12" y="137" class="tl">Frontline employee</text>
+      <text x="12" y="199" class="tl">Supervisor</text>
+      <text x="12" y="261" class="tl">Branch manager</text>
+      <text x="12" y="323" class="tl">Area manager</text>
+      <text x="12" y="385" class="tl">Quality manager</text>
+      <text x="12" y="447" class="tl">Corporate / exec</text>
+      <!-- time header -->
+      <g text-anchor="middle">
+        <text x="214" y="26" class="tm">06:00</text>
+        <text x="338" y="26" class="tm">06:30</text>
+        <text x="462" y="26" class="tm">12:00</text>
+        <text x="586" y="26" class="tm">12:01</text>
+        <text x="710" y="26" class="tm">13:10</text>
+        <text x="834" y="26" class="tm">13:30</text>
+        <text x="958" y="26" class="tm">Evening</text>
+      </g>
+      <!-- edges -->
+      <path d="M234,154 L308,174" class="e" marker-end="url(#a1)"/>
+      <path d="M482,112 L566,92" class="e" marker-end="url(#a1)"/>
+      <path d="M586,92 L586,234" class="e" marker-end="url(#a1)"/>
+      <path d="M606,92 L688,172" class="e" marker-end="url(#a1)"/>
+      <path d="M643,262 L682,296" class="e-dash" marker-end="url(#a1)"/>
+      <path d="M767,200 L812,358" class="e" marker-end="url(#a1)"/>
+      <path d="M856,402 L926,420" class="e" marker-end="url(#a1)"/>
+      <!-- nodes -->
+      <g text-anchor="middle">
+        <rect x="157" y="112" width="114" height="42" rx="6" class="n"/>
+        <text x="214" y="129" class="t">Opening checklist</text><text x="214" y="145" class="ts">GPS + photos</text>
+
+        <rect x="281" y="174" width="114" height="42" rx="6" class="n"/>
+        <text x="338" y="191" class="t">Reviews opening</text><text x="338" y="207" class="ts">flags any gaps</text>
+
+        <rect x="405" y="112" width="114" height="42" rx="6" class="n-crit"/>
+        <text x="462" y="129" class="t">Chiller reads 9°C</text><text x="462" y="145" class="ts">FAIL · photo forced</text>
+
+        <rect x="529" y="50" width="114" height="42" rx="6" class="n-acc"/>
+        <text x="586" y="67" class="t">Issue + CAPA</text><text x="586" y="83" class="ts">High · SLA 2 h</text>
+
+        <rect x="529" y="236" width="114" height="42" rx="6" class="n"/>
+        <text x="586" y="253" class="t">Gets alert</text><text x="586" y="269" class="ts">push + dashboard</text>
+
+        <rect x="653" y="174" width="114" height="42" rx="6" class="n"/>
+        <text x="710" y="191" class="t">Fixes door seal</text><text x="710" y="207" class="ts">uploads proof</text>
+
+        <rect x="653" y="298" width="114" height="42" rx="6" class="n-dash"/>
+        <text x="710" y="315" class="t">Escalation</text><text x="710" y="331" class="ts">only if open at 14:01</text>
+
+        <rect x="777" y="360" width="114" height="42" rx="6" class="n-ok"/>
+        <text x="834" y="377" class="t">Verifies fix</text><text x="834" y="393" class="ts">CAPA closed</text>
+
+        <rect x="901" y="112" width="114" height="42" rx="6" class="n"/>
+        <text x="958" y="129" class="t">Closing checklist</text><text x="958" y="145" class="ts">end of day</text>
+
+        <rect x="901" y="298" width="114" height="42" rx="6" class="n"/>
+        <text x="958" y="315" class="t">Compares</text><text x="958" y="331" class="ts">branch scores</text>
+
+        <rect x="901" y="422" width="114" height="42" rx="6" class="n"/>
+        <text x="958" y="439" class="t">Group dashboard</text><text x="958" y="455" class="ts">scores refresh</text>
+      </g>
+    </svg>
+    </div>
+    <figcaption>The employee never chooses whether to raise an issue. A reading outside the configured 0–5°C range makes the system require evidence and open the corrective action. The dashed box only happens if the 2-hour SLA is missed.</figcaption>
+  </figure>
+</section>
+
+<!-- 7 CAPA -->
+<section id="capa">
+  <h2><span class="no">07</span>What happens when a checklist item fails</h2>
+  <p class="sub">The decision logic behind sections 12, 33, 43 and 67. The checklist cannot be submitted until the mandatory fields are filled, and a corrective action cannot close without verification.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 760 740" width="760" role="img" aria-label="Flowchart: an item is answered; a pass is scored; a fail blocks submission until photo, comment, owner and due date are given; a critical item notifies three managers immediately; a corrective action is created with an SLA; the owner fixes and uploads proof; if verification fails it loops back; once verified it closes and is locked in the audit trail.">
+      <defs>
+        <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+      </defs>
+      <!-- edges -->
+      <path d="M330,62 V92" class="e" marker-end="url(#a2)"/>
+      <path d="M410,130 H518" class="e" marker-end="url(#a2)"/>
+      <path d="M330,166 V202" class="e" marker-end="url(#a2)"/>
+      <path d="M330,256 V292" class="e" marker-end="url(#a2)"/>
+      <path d="M420,330 H498" class="e" marker-end="url(#a2)"/>
+      <path d="M330,366 V406" class="e" marker-end="url(#a2)"/>
+      <path d="M620,356 V430 H462" class="e" marker-end="url(#a2)"/>
+      <path d="M330,452 V496" class="e" marker-end="url(#a2)"/>
+      <path d="M460,520 H498" class="e-dash" marker-end="url(#a2)"/>
+      <path d="M330,542 V572" class="e" marker-end="url(#a2)"/>
+      <path d="M250,610 H120 V520 H198" class="e" marker-end="url(#a2)"/>
+      <path d="M330,646 V676" class="e" marker-end="url(#a2)"/>
+      <!-- edge labels -->
+      <text x="464" y="122" class="ts" text-anchor="middle">Pass</text>
+      <text x="340" y="188" class="ts">Fail / Non-compliant</text>
+      <text x="459" y="322" class="ts" text-anchor="middle">Yes</text>
+      <text x="340" y="391" class="ts">No</text>
+      <text x="479" y="512" class="ts" text-anchor="middle">late</text>
+      <text x="244" y="600" class="ts" text-anchor="end">No, rework</text>
+      <text x="340" y="666" class="ts">Yes</text>
+
+      <g text-anchor="middle">
+        <rect x="230" y="18" width="200" height="44" rx="6" class="n"/>
+        <text x="330" y="45" class="t">Employee answers item</text>
+
+        <polygon points="330,94 410,130 330,166 250,130" class="n"/>
+        <text x="330" y="134" class="t">Pass?</text>
+
+        <rect x="520" y="108" width="200" height="44" rx="6" class="n-ok"/>
+        <text x="620" y="126" class="t">Scored as pass</text><text x="620" y="142" class="ts">checklist continues</text>
+
+        <rect x="200" y="204" width="260" height="52" rx="6" class="n-warn"/>
+        <text x="330" y="226" class="t">Submit blocked until filled</text>
+        <text x="330" y="243" class="ts">photo · comment · owner · due date</text>
+
+        <polygon points="330,294 420,330 330,366 240,330" class="n"/>
+        <text x="330" y="334" class="t">Critical item?</text>
+
+        <rect x="500" y="304" width="240" height="52" rx="6" class="n-crit"/>
+        <text x="620" y="326" class="t">Critical finding</text>
+        <text x="620" y="343" class="ts">Branch, Area &amp; Quality notified now</text>
+
+        <rect x="200" y="408" width="260" height="44" rx="6" class="n-acc"/>
+        <text x="330" y="426" class="t">CAPA created, SLA clock starts</text>
+        <text x="330" y="442" class="ts">root cause · correction · prevention</text>
+
+        <rect x="200" y="498" width="260" height="44" rx="6" class="n"/>
+        <text x="330" y="516" class="t">Owner fixes the problem</text>
+        <text x="330" y="532" class="ts">uploads proof of correction</text>
+
+        <rect x="500" y="496" width="240" height="48" rx="6" class="n-dash"/>
+        <text x="620" y="516" class="t">SLA breached</text>
+        <text x="620" y="532" class="ts">escalate one level up</text>
+
+        <polygon points="330,574 410,610 330,646 250,610" class="n"/>
+        <text x="330" y="614" class="t">Verified?</text>
+
+        <rect x="200" y="678" width="260" height="44" rx="6" class="n-ok"/>
+        <text x="330" y="696" class="t">Closed</text>
+        <text x="330" y="712" class="ts">locked permanently in the audit trail</text>
+      </g>
+    </svg>
+    </div>
+    <figcaption>Admins decide which items count as critical. The BRD's examples are an unsafe food temperature, an expired critical product, pest activity, a failed fire-safety check, a blocked emergency exit and a serious hygiene violation.</figcaption>
+  </figure>
+</section>
+
+<!-- 8 TASKS -->
+<section id="tasks">
+  <h2><span class="no">08</span>The life of a task</h2>
+  <p class="sub">Every task, whether created by hand or automatically from a failed item, passes through the same six statuses in section 30. Verification sends weak work back to be redone.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 170" width="960" role="img" aria-label="Task statuses: Open, Assigned, In Progress, Submitted, Verified, Closed, with a rework loop from Verified back to In Progress.">
+      <defs>
+        <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+      </defs>
+      <g text-anchor="middle">
+        <text x="160" y="36" class="ts">manager assigns</text>
+        <text x="320" y="36" class="ts">employee starts</text>
+        <text x="480" y="36" class="ts">proof attached</text>
+        <text x="640" y="36" class="ts">supervisor checks</text>
+        <text x="800" y="36" class="ts">approved</text>
+      </g>
+      <path d="M145,70 H173" class="e" marker-end="url(#a3)"/>
+      <path d="M305,70 H333" class="e" marker-end="url(#a3)"/>
+      <path d="M465,70 H493" class="e" marker-end="url(#a3)"/>
+      <path d="M625,70 H653" class="e" marker-end="url(#a3)"/>
+      <path d="M785,70 H813" class="e" marker-end="url(#a3)"/>
+      <path d="M700,92 C700,150 420,150 420,94" class="e-dash" marker-end="url(#a3)"/>
+      <text x="560" y="160" class="ts" text-anchor="middle">rework requested</text>
+      <g text-anchor="middle">
+        <rect x="15" y="48" width="130" height="44" rx="22" class="n"/><text x="80" y="74" class="t">Open</text>
+        <rect x="175" y="48" width="130" height="44" rx="22" class="n"/><text x="240" y="74" class="t">Assigned</text>
+        <rect x="335" y="48" width="130" height="44" rx="22" class="n-acc"/><text x="400" y="74" class="t">In Progress</text>
+        <rect x="495" y="48" width="130" height="44" rx="22" class="n"/><text x="560" y="74" class="t">Submitted</text>
+        <rect x="655" y="48" width="130" height="44" rx="22" class="n"/><text x="720" y="74" class="t">Verified</text>
+        <rect x="815" y="48" width="130" height="44" rx="22" class="n-ok"/><text x="880" y="74" class="t">Closed</text>
+      </g>
+    </svg>
+    </div>
+    <figcaption>Each task carries a title, priority, branch, department, assignee, creator, due date, evidence, comments and approval. The rework loop is implied by "verification" in the BRD but not spelled out, so confirm it with the client.</figcaption>
+  </figure>
+</section>
+
+<!-- 9 ESCALATION -->
+<section id="escalation">
+  <h2><span class="no">09</span>Escalation: how fast problems climb</h2>
+  <p class="sub">Each issue gets a priority, and the priority sets how long it can stay open before it goes to the next level. All thresholds are configurable (section 34).</p>
+  <figure>
+    <div class="esc">
+      <div class="erow"><span class="pill c">CRITICAL</span><span class="when">Immediately</span>
+        <div class="track"><span>Branch Manager</span><i>+</i><span>Area Manager</span><i>+</i><span>Corporate Quality</span><i class="who">&nbsp;all notified at once</i></div></div>
+      <div class="erow"><span class="pill h">HIGH</span><span class="when">after 2 hours</span>
+        <div class="who">Example: chiller out of range, failed cleaning in a prep area</div></div>
+      <div class="erow"><span class="pill m">MEDIUM</span><span class="when">after 24 hours</span>
+        <div class="who">Example: damaged dining-area fixture, missing signage</div></div>
+      <div class="erow"><span class="pill l">LOW</span><span class="when">after 72 hours</span>
+        <div class="who">Example: cosmetic room defect, minor housekeeping note</div></div>
+    </div>
+    <figcaption>The example issues are illustrative; the BRD gives only the timings. One point to settle: whether each breach moves one level up (Branch → Area → Corporate) or goes straight to corporate.</figcaption>
+  </figure>
+  <h3>Notifications the platform sends</h3>
+  <div class="two">
+    <div class="box"><h4>Events</h4>
+      <ul class="ticks"><li>Task assigned / overdue</li><li>Checklist due / missed</li><li>Critical failure</li><li>Incident created</li><li>Corrective action overdue</li><li>Training assigned</li><li>Certificate expiring</li></ul></div>
+    <div class="box"><h4>Channels</h4>
+      <ul class="ticks"><li>Push notification (mobile)</li><li>Email</li><li>SMS (optional)</li><li>WhatsApp Business (optional)</li><li>All in Arabic or English, per user</li></ul></div>
+  </div>
+</section>
+
+<!-- 10 LIBRARY -->
+<section id="library">
+  <h2><span class="no">10</span>The Saudi compliance library: why each item exists</h2>
+  <p class="sub">The BRD calls this the main differentiator. Regulations live as versioned data, not code, and each checklist answer can be traced back to the rule that requires it.</p>
+  <figure>
+    <ol class="chain" aria-label="Compliance traceability chain from Authority to Closure with an example">
+      <li><span class="lvl">Authority</span><span class="nm">SFDA</span><span class="ex">also Balady, MoT, Civil Defense</span></li>
+      <li><span class="lvl">Regulation</span><span class="nm">Food Hygiene Requirements</span><span class="ex">version + effective date</span></li>
+      <li><span class="lvl">Requirement</span><span class="nm">Cold storage monitored</span><span class="ex">temps recorded</span></li>
+      <li class="hl"><span class="lvl">Checklist</span><span class="nm">Kitchen temperature</span><span class="ex">08:00 · 12:00 · 16:00 · 20:00</span></li>
+      <li class="hl"><span class="lvl">Item</span><span class="nm">Chiller 0–5°C</span><span class="ex">range set by customer</span></li>
+      <li><span class="lvl">Evidence</span><span class="nm">Reading + photo</span><span class="ex">9°C · GPS · timestamp</span></li>
+      <li><span class="lvl">Finding</span><span class="nm">Out of range</span><span class="ex">high priority</span></li>
+      <li><span class="lvl">Corrective action</span><span class="nm">Replace door seal</span><span class="ex">owner + SLA</span></li>
+      <li><span class="lvl">Closure</span><span class="nm">Verified by Quality</span><span class="ex">audit record locked</span></li>
+    </ol>
+    <figcaption>The split matters: the authority writes the requirement, and the customer configures the range, frequency, evidence and escalation. When SFDA issues a new version, the compliance admin updates the library and no code changes. The platform supports compliance; it never claims to certify it (section 3).</figcaption>
+  </figure>
+</section>
+
+<!-- 11 SCORE -->
+<section id="score">
+  <h2><span class="no">11</span>How a compliance score is calculated</h2>
+  <p class="sub">The basic score is completed items ÷ applicable items × 100. The engine also weights categories, so a food-safety miss costs more than a customer-service miss.</p>
+  <figure>
+    <div class="bar" role="img" aria-label="Default weights: Food Safety 40%, Hygiene 20%, Operations 15%, Safety 15%, Customer Service 10%.">
+      <div style="width:40%;background:var(--accent)">Food safety 40%</div>
+      <div style="width:20%;background:color-mix(in srgb, var(--accent) 78%, var(--ink))">Hygiene 20%</div>
+      <div style="width:15%;background:color-mix(in srgb, var(--accent) 55%, var(--ink-2))">Operations 15%</div>
+      <div style="width:15%;background:var(--warn)">Safety 15%</div>
+      <div style="width:10%;background:var(--ink-2)">Cust. 10%</div>
+    </div>
+    <table class="calc">
+      <thead><tr><th>Worked example · Riyadh 01, one week</th><th>Category score</th><th>Weight</th><th>Contribution</th></tr></thead>
+      <tbody>
+        <tr><td>Food safety</td><td>92%</td><td>40%</td><td>36.8</td></tr>
+        <tr><td>Hygiene</td><td>95%</td><td>20%</td><td>19.0</td></tr>
+        <tr><td>Operations</td><td>88%</td><td>15%</td><td>13.2</td></tr>
+        <tr><td>Safety</td><td>100%</td><td>15%</td><td>15.0</td></tr>
+        <tr><td>Customer service</td><td>90%</td><td>10%</td><td>9.0</td></tr>
+      </tbody>
+      <tfoot><tr><td>Overall compliance</td><td></td><td>100%</td><td>93.0%</td></tr></tfoot>
+    </table>
+    <figcaption>Category scores are example numbers. Rules still to define: how N/A items count, whether a single critical finding caps the score, and whether a missed checklist counts as zero or is left out.</figcaption>
+  </figure>
+</section>
+
+<!-- 12 EXPIRY -->
+<section id="expiry">
+  <h2><span class="no">12</span>Certificate and licence expiry alerts</h2>
+  <p class="sub">Health certificates, food-safety and first-aid certificates, Balady and tourism licences, and contractor documents all sit in one register with automatic countdown alerts.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 800 120" width="800" role="img" aria-label="Expiry timeline with alerts at 30, 15 and 7 days before expiry and on the expiry date.">
+      <line x1="60" y1="56" x2="740" y2="56" class="e"/>
+      <g text-anchor="middle">
+        <circle cx="60" cy="56" r="9" class="n-acc"/>
+        <text x="60" y="30" class="t">30 days</text><text x="60" y="88" class="ts">first reminder</text>
+        <circle cx="400" cy="56" r="9" class="n-warn"/>
+        <text x="400" y="30" class="t">15 days</text><text x="400" y="88" class="ts">book the renewal</text>
+        <circle cx="581" cy="56" r="9" class="n-warn"/>
+        <text x="581" y="30" class="t">7 days</text><text x="581" y="88" class="ts">urgent reminder</text>
+        <circle cx="740" cy="56" r="10" class="n-crit"/>
+        <text x="740" y="30" class="t">Expired</text><text x="740" y="88" class="ts">flagged on dashboard</text>
+      </g>
+      <text x="400" y="112" class="tm" text-anchor="middle">drawn to scale: days remaining 30 → 0</text>
+    </svg>
+    </div>
+    <figcaption>The four alert points come from section 27; the actions under them are suggestions. Open question: should an expired worker health certificate block that employee from food-handling tasks, or only raise a flag?</figcaption>
+  </figure>
+</section>
+
+<!-- 13 OFFLINE -->
+<section id="offline">
+  <h2><span class="no">13</span>Working offline in a basement kitchen</h2>
+  <p class="sub">Cold rooms and back-of-house areas often have no signal. The app keeps working and syncs later without creating duplicates (section 49).</p>
+  <figure>
+    <ol class="chain" aria-label="Offline sync flow">
+      <li><span class="lvl">No signal</span><span class="nm">Complete checklist</span><span class="ex">readings, photos, tasks</span></li>
+      <li><span class="lvl">On device</span><span class="nm">Saved locally</span><span class="ex">device time, GPS, unique ID</span></li>
+      <li><span class="lvl">Signal back</span><span class="nm">Auto-sync</span><span class="ex">in the background</span></li>
+      <li class="hl"><span class="lvl">Server</span><span class="nm">Duplicate check</span><span class="ex">same ID is skipped</span></li>
+      <li><span class="lvl">Stored</span><span class="nm">Audit trail written</span><span class="ex">flagged as offline capture</span></li>
+    </ol>
+    <figcaption>This is the hardest technical area in the BRD. Offline capture conflicts with geofencing (GPS may be weak indoors), with trusting the device clock, and with evidence integrity. Agree the rules before development: for example, how long an offline record may wait and how its location is checked.</figcaption>
+  </figure>
+</section>
+
+<!-- 14 ARCHITECTURE -->
+<section id="architecture">
+  <h2><span class="no">14</span>Recommended architecture</h2>
+  <p class="sub">The technical stack from section 62. Requests flow down from the apps to storage, and integrations connect at the API.</p>
+  <figure>
+    <div class="arch">
+      <div class="tiers" role="img" aria-label="Architecture tiers: apps, API, core services, data, with integrations alongside.">
+        <div class="tier"><div class="tn">Apps</div><div class="tb"><span>Android app</span><span>iOS app</span><span>Web admin / corporate portal</span></div></div>
+        <div class="down">↓ HTTPS · authenticated</div>
+        <div class="tier"><div class="tn">API</div><div class="tb"><span>REST / GraphQL · RBAC · audit logging</span></div></div>
+        <div class="down">↓</div>
+        <div class="tier core"><div class="tn">Core services</div><div class="tb"><span>Checklist engine</span><span>Workflow &amp; escalation</span><span>Scoring</span><span>Compliance library</span><span>Notifications</span><span>Reporting</span><span class="opt">AI layer (optional)</span></div></div>
+        <div class="down">↓</div>
+        <div class="tier"><div class="tn">Data</div><div class="tb"><span>PostgreSQL / SQL Server</span><span>Encrypted object storage (photos, docs)</span><span>BI / embedded analytics</span></div></div>
+      </div>
+      <div class="integr"><b>Integrations via API</b>
+        <ul><li>HR · ERP · POS</li><li>PMS (hotel system)</li><li>Attendance system</li><li>IoT temperature sensors</li><li>Barcode scanners</li><li>SMS · Email · WhatsApp</li><li>SSO</li><li>BI platforms</li></ul>
+      </div>
+    </div>
+    <figcaption>Hosting location is still open. Section 64 sends it to the customer's legal and security teams, and Saudi data-protection and cybersecurity rules may require hosting inside the Kingdom. Settle this before choosing a cloud provider.</figcaption>
+  </figure>
+</section>
+
+<!-- 15 PHASES -->
+<section id="phases">
+  <h2><span class="no">15</span>Release roadmap</h2>
+  <p class="sub">Three phases. Phase 1 runs the full loop from section 01 for operations and compliance. Later phases add modules and intelligence.</p>
+  <div class="phases">
+    <div class="phase"><span class="tag">PHASE 1 · MVP</span><h4>Run the loop</h4>
+      <ul><li>Users, branches, roles</li><li>Checklist engine</li><li>Mobile app</li><li>Photo evidence &amp; GPS</li><li>Tasks, issues, corrective actions</li><li>Notifications</li><li>Dashboard &amp; reports</li><li>Arabic / English</li><li>Audit trail</li><li>Certificate expiry</li><li>Basic compliance mapping</li></ul></div>
+    <div class="phase ph2"><span class="tag">PHASE 2</span><h4>Widen the platform</h4>
+      <ul><li>Training &amp; assessments</li><li>Attendance</li><li>Rostering</li><li>Maintenance</li><li>Customer complaints</li><li>Vendor management</li><li>Advanced compliance</li><li>Advanced analytics</li></ul></div>
+    <div class="phase ph3"><span class="tag">PHASE 3</span><h4>Add intelligence</h4>
+      <ul><li>AI intelligence &amp; risk scoring</li><li>AI root-cause analysis</li><li>AI management assistant</li><li>Image-based inspections</li><li>IoT temperature monitoring</li><li>Predictive maintenance</li><li>Advanced integrations</li></ul></div>
+  </div>
+</section>
+
+<!-- 16 VISION -->
+<section id="vision">
+  <h2><span class="no">16</span>The end goal: one dashboard, nine answers</h2>
+  <p class="sub">Section 79 judges success by whether a CEO, COO or Quality Director can open one screen and answer these questions.</p>
+  <div class="qs">
+    <div class="q"><small>TODAY</small>Are my branches operating correctly today?</div>
+    <div class="q"><small>RISK</small>Which branches have compliance risks?</div>
+    <div class="q"><small>ISSUES</small>Which critical issues are unresolved?</div>
+    <div class="q"><small>PEOPLE</small>Which employees have not completed their tasks?</div>
+    <div class="q"><small>DOCUMENTS</small>Which certificates are expiring?</div>
+    <div class="q"><small>FOOD SAFETY</small>Which food-safety controls are failing?</div>
+    <div class="q"><small>PATTERNS</small>Which branches keep failing the same items?</div>
+    <div class="q"><small>CAPA</small>What corrective actions are overdue?</div>
+    <div class="q future"><small>PHASE 3</small>What is likely to go wrong before it happens?</div>
+  </div>
+</section>
+
+</main>
+<footer><div class="wrap">Based on the OpsNexus Business &amp; Functional Requirements Document v1.0. Branch names, readings, scores and example issues are illustrative.</div></footer>
+</body>
+</html>
